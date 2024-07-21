@@ -32,23 +32,14 @@ async function callServer(speechResult) {
   })
   .then(response => response.json())
   .then(data => {
-    playAudio(data.speechChatGPT);
+    playAudio(data.filename);
   })
   .catch(error => {
     console.error('Fetch error:', error);
   });
 }
 
-function playAudio(speechChatGPT) {
-  console.log(speechChatGPT.type)
-  const audioData = atob(speechChatGPT); // Decode base64 to binary string
-  const arrayBuffer = new ArrayBuffer(audioData.length);
-  const uintArray = new Uint8Array(arrayBuffer);
-  for (let i = 0; i < audioData.length; i++) {
-    uintArray[i] = audioData.charCodeAt(i);
-  }
-  const blob = new Blob([uintArray], { type: 'audio/wav' }); // Use appropriate MIME type
-  const url = URL.createObjectURL(blob);
-  const audio = new Audio(url);
-  audio.play();
+function playAudio(filename) {
+  var audio = new Audio(filename);
+  audio.play();  
 }
