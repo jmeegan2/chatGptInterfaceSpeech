@@ -1,5 +1,13 @@
+let waitingForResponse = false
+
 function listen() {
+  if (waitingForResponse) return
   console.log('listen');
+  const robotHead = document.getElementById('robotHead');
+  
+  // Switch to talking animation
+  robotHead.style.animation = 'talking 1s infinite alternate';
+
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.lang = 'en-US';
   recognition.interimResults = false;
@@ -10,17 +18,23 @@ function listen() {
   recognition.onresult = (event) => {
     const speechResult = event.results[0][0].transcript;
     console.log('Result: ', speechResult);
+    waitingForResponse = true;
     callServer(speechResult); 
   };
 
   recognition.onspeechend = () => {
     recognition.stop();
+    // Switch back to idle animation
+    robotHead.style.animation = 'idle 1s infinite alternate';
   };
 
   recognition.onerror = (event) => {
     console.error('Error occurred in recognition: ', event.error);
+    // Switch back to idle animation in case of error
+    robotHead.style.animation = 'idle 1s infinite alternate';
   };
 }
+
 
 async function callServer(speechResult) {
   try {
@@ -37,25 +51,24 @@ async function callServer(speechResult) {
     }
 
     const blob = await response.blob();
-
-    // Create a URL for the blob
     const url = window.URL.createObjectURL(blob);
-
-    // Play the audio directly
     const audio = new Audio(url);
-    audio.play().catch(error => {
-      console.error('Error playing audio:', error);
+
+    audio.addEventListener('play', () => {
+      document.getElementById('robotHead').style.animation = 'talking 0.5s infinite alternate';
     });
 
-    console.log('Audio playing successfully');
+    audio.addEventListener('ended', () => {
+      document.getElementById('robotHead').style.animation = 'idle 1s infinite alternate';
+      window.URL.revokeObjectURL(url); // Revoke after playing
+    });
 
+    await audio.play();
+    waitingForResponse = false
+    console.log('Audio is playing');
   } catch (error) {
-    console.error('Fetch error:', error);
+    console.error('Fetch error or audio play error:', error);
   }
 }
 
 
-function playAudio(filename) {
-  var audio = new Audio(filename);
-  audio.play();  
-}
