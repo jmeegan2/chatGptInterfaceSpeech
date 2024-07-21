@@ -1,5 +1,13 @@
 let waitingForResponse = false
 
+document.addEventListener('DOMContentLoaded', (event) => {
+  document.addEventListener('keydown', (event) => {
+    if (event.code === 'Space') {
+      listen();
+    }
+  });
+});
+
 function listen() {
   if (waitingForResponse) return
   console.log('listen');
